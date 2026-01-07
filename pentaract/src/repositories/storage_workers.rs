@@ -58,7 +58,7 @@ impl<'d> StorageWorkersRepository<'d> {
 
     pub async fn storage_has_any(&self, storage_id: Uuid) -> PentaractResult<bool> {
         let has_sws: (_,) = sqlx::query_as(&format!(
-            "SELECT COUNT(*) > 0 FROM {STORAGE_WORKERS_TABLE} WHERE storage_id = $1"
+            "SELECT COUNT(*) > 0 FROM {STORAGE_WORKERS_TABLE} WHERE storage_id = $1 OR storage_id IS NULL"
         ))
         .bind(storage_id)
         .fetch_one(self.db)
@@ -101,11 +101,11 @@ impl<'d> StorageWorkersRepository<'d> {
     ) -> PentaractResult<Option<StorageWorkerTokenOnly>> {
         let mut transaction = self.db.begin().await.map_err(|e| map_not_found(e, ""))?;
 
-        // deleting old rows
+        // deleting old rows - use 10 seconds to avoid blocking workers
         sqlx::query(&format!(
             "
             DELETE FROM {STORAGE_WORKERS_USAGES_TABLE}
-            WHERE dt < NOW() - INTERVAL '1 minute';
+            WHERE dt < NOW() - INTERVAL '10 seconds';
             "
         ))
         .execute(&mut *transaction)
@@ -150,5 +150,82 @@ impl<'d> StorageWorkersRepository<'d> {
             .map_err(|e| map_not_found(e, ""))?;
 
         Ok(token)
+    }
+
+    pub async fn get_by_id(&self, id: Uuid, user_id: Uuid) -> PentaractResult<StorageWorker> {
+        sqlx::query_as(&format!(
+            "SELECT * FROM {STORAGE_WORKERS_TABLE} WHERE id = $1 AND user_id = $2"
+        ))
+        .bind(id)
+        .bind(user_id)
+        .fetch_one(self.db)
+        .await
+        .map_err(|e| map_not_found(e, "storage_worker"))
+    }
+
+    pub async fn delete(&self, id: Uuid, user_id: Uuid) -> PentaractResult<()> {
+        let result = sqlx::query(&format!(
+            "DELETE FROM {STORAGE_WORKERS_TABLE} WHERE id = $1 AND user_id = $2"
+        ))
+        .bind(id)
+        .bind(user_id)
+        .execute(self.db)
+        .await
+        .map_err(|_| PentaractError::Unknown)?;
+
+        if result.rows_affected() == 0 {
+            return Err(PentaractError::DoesNotExist("Storage worker not found".to_string()));
+        }
+
+        Ok(())
+    }
+
+    pub async fn update(
+        &self,
+        id: Uuid,
+        user_id: Uuid,
+        name: Option<String>,
+        storage_id: Option<Uuid>,
+    ) -> PentaractResult<StorageWorker> {
+        // First check if it exists
+        self.get_by_id(id, user_id).await?;
+
+        // Build dynamic update query
+        let mut updates = Vec::new();
+        let mut param_idx = 3;
+
+        if name.is_some() {
+            updates.push(format!("name = ${}", param_idx));
+            param_idx += 1;
+        }
+        if storage_id.is_some() {
+            updates.push(format!("storage_id = ${}", param_idx));
+        }
+
+        if updates.is_empty() {
+            return self.get_by_id(id, user_id).await;
+        }
+
+        let query = format!(
+            "UPDATE {} SET {} WHERE id = $1 AND user_id = $2 RETURNING *",
+            STORAGE_WORKERS_TABLE,
+            updates.join(", ")
+        );
+
+        let mut query_builder = sqlx::query_as::<_, StorageWorker>(&query)
+            .bind(id)
+            .bind(user_id);
+
+        if let Some(ref n) = name {
+            query_builder = query_builder.bind(n);
+        }
+        if let Some(ref s) = storage_id {
+            query_builder = query_builder.bind(s);
+        }
+
+        query_builder
+            .fetch_one(self.db)
+            .await
+            .map_err(|e| map_not_found(e, "storage_worker"))
     }
 }

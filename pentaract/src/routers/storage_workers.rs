@@ -1,13 +1,14 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Query, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     middleware,
     response::{IntoResponse, Response},
     routing::get,
     Extension, Json, Router,
 };
+use uuid::Uuid;
 
 use crate::{
     common::{
@@ -15,7 +16,7 @@ use crate::{
         routing::{app_state::AppState, middlewares::auth::logged_in_required},
     },
     schemas::storage_workers::{
-        HasStorageWorkers, InStorageWorkerSchema, StorageWorkersStorageIDQuery,
+        HasStorageWorkers, InStorageWorkerSchema, StorageWorkersStorageIDQuery, UpdateStorageWorkerSchema,
     },
     services::storage_workers::StorageWorkersService,
 };
@@ -26,6 +27,7 @@ impl StorageWorkersRouter {
     pub fn get_router(state: Arc<AppState>) -> Router {
         Router::new()
             .route("/", get(Self::list).post(Self::create))
+            .route("/{id}", axum::routing::delete(Self::delete).patch(Self::update))
             .route("/has_workers", get(Self::has_storages_workers))
             .route_layer(middleware::from_fn_with_state(
                 state.clone(),
@@ -62,5 +64,28 @@ impl StorageWorkersRouter {
             .has_storage_workers(query.0.storage_id, &user)
             .await?;
         Ok(Json(HasStorageWorkers { has }).into_response())
+    }
+
+    async fn delete(
+        State(state): State<Arc<AppState>>,
+        Extension(user): Extension<AuthUser>,
+        Path(id): Path<Uuid>,
+    ) -> impl IntoResponse {
+        StorageWorkersService::new(&state.db)
+            .delete(id, &user)
+            .await?;
+        Ok::<_, (StatusCode, String)>(StatusCode::NO_CONTENT)
+    }
+
+    async fn update(
+        State(state): State<Arc<AppState>>,
+        Extension(user): Extension<AuthUser>,
+        Path(id): Path<Uuid>,
+        Json(in_schema): Json<UpdateStorageWorkerSchema>,
+    ) -> impl IntoResponse {
+        let sw = StorageWorkersService::new(&state.db)
+            .update(id, in_schema, &user)
+            .await?;
+        Ok::<_, (StatusCode, String)>((StatusCode::OK, Json(sw)))
     }
 }

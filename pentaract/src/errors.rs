@@ -39,6 +39,8 @@ pub enum PentaractError {
     StorageDoesNotHaveWorkers,
     #[error("unknown error")]
     Unknown,
+    #[error("No worker available within timeout")]
+    WorkerUnavailable,
     #[error("{0} header is required")]
     HeaderMissed(String),
     #[error("{0} header should be a valid {1}")]

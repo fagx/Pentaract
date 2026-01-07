@@ -1,45 +1,33 @@
 ############################################################################################
-####  SERVER
+####  SERVER BUILDER
 ############################################################################################
 
-# Using the `rust-musl-builder` as base image, instead of 
-# the official Rust toolchain
-FROM clux/muslrust:stable AS chef
-USER root
-RUN cargo install cargo-chef
+FROM rust:latest AS builder
 WORKDIR /app
-
-FROM chef AS planner
+RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
 COPY ./pentaract .
-RUN cargo chef prepare --recipe-path recipe.json
-
-FROM chef AS builder 
-COPY --from=planner /app/recipe.json recipe.json
-# Build dependencies - this is the caching Docker layer!
-RUN cargo chef cook --release --target x86_64-unknown-linux-musl --recipe-path recipe.json
-# Build application
-COPY ./pentaract .
-RUN cargo build --target x86_64-unknown-linux-musl --release
+RUN cargo build --release
 
 ############################################################################################
-####  UI
+####  UI BUILDER
 ############################################################################################
 
-FROM node:21-slim AS ui
+FROM node:20-slim AS ui
 WORKDIR /app
-COPY ./ui .
-RUN npm install -g pnpm
-RUN pnpm i
-ENV VITE_API_BASE /api
-RUN pnpm run build
+COPY ./frontend/package*.json ./
+RUN npm install
+COPY ./frontend .
+RUN npm run build
 
 ############################################################################################
-####  RUNNING
+####  RUNTIME
 ############################################################################################
 
-# We do not need the Rust toolchain to run the binary!
-FROM scratch AS runtime
-COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/pentaract /
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+FROM debian:bookworm-slim AS runtime
+WORKDIR /app
+RUN apt-get update && apt-get install -y libssl3 ca-certificates && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /app/target/release/pentaract /pentaract
 COPY --from=ui /app/dist /ui
+ENV PORT=8000
+EXPOSE 8000
 ENTRYPOINT ["/pentaract"]

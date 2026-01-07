@@ -13,11 +13,18 @@ pub struct StorageManager {
     rx: StorageManagerListener,
     db: PgPool,
     config: Config,
+    client: reqwest::Client,
 }
 
 impl StorageManager {
     pub fn new(rx: StorageManagerListener, db: PgPool, config: Config) -> Self {
-        Self { rx, db, config }
+        let client = reqwest::Client::new();
+        Self {
+            rx,
+            db,
+            config,
+            client,
+        }
     }
 
     pub async fn run(&mut self) {
@@ -44,6 +51,7 @@ impl StorageManager {
             &self.db,
             &self.config.telegram_api_base_url,
             self.config.telegram_rate_limit,
+            &self.client,
         )
         .upload(data)
         .await;
@@ -56,6 +64,7 @@ impl StorageManager {
             &self.db,
             &self.config.telegram_api_base_url,
             self.config.telegram_rate_limit,
+            &self.client,
         )
         .download(data)
         .await;

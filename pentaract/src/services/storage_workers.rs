@@ -9,7 +9,7 @@ use crate::{
         storage_workers::{InStorageWorker, StorageWorker},
     },
     repositories::{access::AccessRepository, storage_workers::StorageWorkersRepository},
-    schemas::storage_workers::InStorageWorkerSchema,
+    schemas::storage_workers::{InStorageWorkerSchema, UpdateStorageWorkerSchema},
 };
 
 pub struct StorageWorkersService<'d> {
@@ -61,5 +61,18 @@ impl<'d> StorageWorkersService<'d> {
         check_access(&self.access_repo, user.id, storage_id, &AccessType::R).await?;
 
         self.repo.storage_has_any(storage_id).await
+    }
+
+    pub async fn delete(&self, id: Uuid, user: &AuthUser) -> PentaractResult<()> {
+        self.repo.delete(id, user.id).await
+    }
+
+    pub async fn update(
+        &self,
+        id: Uuid,
+        in_schema: UpdateStorageWorkerSchema,
+        user: &AuthUser,
+    ) -> PentaractResult<StorageWorker> {
+        self.repo.update(id, user.id, in_schema.name, in_schema.storage_id).await
     }
 }

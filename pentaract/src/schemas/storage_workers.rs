@@ -9,6 +9,12 @@ pub struct InStorageWorkerSchema {
 }
 
 #[derive(Deserialize)]
+pub struct UpdateStorageWorkerSchema {
+    pub name: Option<String>,
+    pub storage_id: Option<Uuid>,
+}
+
+#[derive(Deserialize)]
 pub struct StorageWorkersStorageIDQuery {
     pub storage_id: Uuid,
 }
@@ -17,3 +23,4 @@ pub struct StorageWorkersStorageIDQuery {
 pub struct HasStorageWorkers {
     pub has: bool,
 }
+

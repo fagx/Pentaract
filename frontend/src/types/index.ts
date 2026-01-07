@@ -53,6 +53,11 @@ export interface CreateStorageWorkerRequest {
     storage_id: string | null
 }
 
+export interface UpdateStorageWorkerRequest {
+    name?: string
+    storage_id?: string
+}
+
 // File System types
 export interface FSElement {
     path: string
