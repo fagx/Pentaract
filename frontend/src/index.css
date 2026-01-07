@@ -6,7 +6,9 @@
 :root {
   /* Light mode colors */
   --color-primary: #0D1821;
-  --color-secondary: #F9E900;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #6c00f9;
+  --color-secondary-foreground: #ffffff;
   --color-background: #ffffff;
   --color-foreground: #0D1821;
   --color-card: #f8f9fa;
@@ -14,10 +16,13 @@
   --color-muted: #f1f5f9;
   --color-muted-foreground: #64748b;
   --color-border: #e2e8f0;
+  --color-input: #e2e8f0;
   --color-accent: #f1f5f9;
   --color-accent-foreground: #0D1821;
   --color-destructive: #ef4444;
   --color-destructive-foreground: #fafafa;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #0D1821;
   --color-ring: #0D1821;
   --radius-lg: 0.75rem;
   --radius-md: 0.5rem;
@@ -37,7 +42,9 @@
 .dark {
   /* Dark mode colors - Pentaract original */
   --color-primary: #0D1821;
-  --color-secondary: #F9E900;
+  --color-primary-foreground: #fafafa;
+  --color-secondary: #6c00f9;
+  --color-secondary-foreground: #ffffff;
   --color-background: #0a0a0a;
   --color-foreground: #fafafa;
   --color-card: #111113;
@@ -45,11 +52,14 @@
   --color-muted: #27272a;
   --color-muted-foreground: #a1a1aa;
   --color-border: #27272a;
+  --color-input: #27272a;
   --color-accent: #1a1a2e;
   --color-accent-foreground: #fafafa;
   --color-destructive: #ef4444;
   --color-destructive-foreground: #fafafa;
-  --color-ring: #F9E900;
+  --color-popover: #1a1a1e;
+  --color-popover-foreground: #fafafa;
+  --color-ring: #6c00f9;
 
   /* Sidebar dark */
   --sidebar: hsl(240 5.9% 10%);
@@ -64,7 +74,9 @@
 
 @theme inline {
   --color-primary: var(--color-primary);
+  --color-primary-foreground: var(--color-primary-foreground);
   --color-secondary: var(--color-secondary);
+  --color-secondary-foreground: var(--color-secondary-foreground);
   --color-background: var(--color-background);
   --color-foreground: var(--color-foreground);
   --color-card: var(--color-card);
@@ -72,10 +84,13 @@
   --color-muted: var(--color-muted);
   --color-muted-foreground: var(--color-muted-foreground);
   --color-border: var(--color-border);
+  --color-input: var(--color-input);
   --color-accent: var(--color-accent);
   --color-accent-foreground: var(--color-accent-foreground);
   --color-destructive: var(--color-destructive);
   --color-destructive-foreground: var(--color-destructive-foreground);
+  --color-popover: var(--color-popover);
+  --color-popover-foreground: var(--color-popover-foreground);
   --color-ring: var(--color-ring);
   --radius-lg: var(--radius-lg);
   --radius-md: var(--radius-md);

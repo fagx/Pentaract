@@ -25,7 +25,12 @@ const queryClient = new QueryClient({
   },
 })
 
+import { useAuthStore } from "@/stores/auth"
+import { LoginAnimation } from "@/components/ui/login-animation"
+
 function App() {
+  const { isLoggingIn, setLoggingIn } = useAuthStore()
+
   return (
     <ThemeProvider
       attribute="class"
@@ -35,6 +40,9 @@ function App() {
     >
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
+          {isLoggingIn && (
+            <LoginAnimation onComplete={() => setLoggingIn(false)} />
+          )}
           <Routes>
             {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />

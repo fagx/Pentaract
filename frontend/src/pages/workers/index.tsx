@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { Plus, Bot, Loader2, Trash2, Pencil, MoreHorizontal } from "lucide-react"
 import { workersApi, storagesApi } from "@/lib/api"
@@ -48,6 +49,7 @@ import {
 } from "@/components/ui/select"
 
 export function WorkersPage() {
+    const { t } = useTranslation()
     const [workers, setWorkers] = useState<StorageWorker[]>([])
     const [storages, setStorages] = useState<StorageWithInfo[]>([])
     const [isLoading, setIsLoading] = useState(true)
@@ -80,7 +82,7 @@ export function WorkersPage() {
             setWorkers(workersData)
             setStorages(storagesData)
         } catch (error) {
-            toast.error("Failed to load workers")
+            toast.error(t('workers.loadError'))
             console.error(error)
         } finally {
             setIsLoading(false)
@@ -94,7 +96,7 @@ export function WorkersPage() {
     const handleCreateWorker = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!selectedStorageId) {
-            toast.error("Please select a storage")
+            toast.error(t('workers.selectStorageError'))
             return
         }
         setIsCreating(true)
@@ -105,14 +107,14 @@ export function WorkersPage() {
                 token: newWorkerToken,
                 storage_id: selectedStorageId,
             })
-            toast.success("Worker created successfully")
+            toast.success(t('workers.createdSuccess'))
             setIsCreateDialogOpen(false)
             setNewWorkerName("")
             setNewWorkerToken("")
             setSelectedStorageId("")
             fetchData()
         } catch (error) {
-            toast.error("Failed to create worker")
+            toast.error(t('workers.createdError'))
             console.error(error)
         } finally {
             setIsCreating(false)
@@ -129,12 +131,12 @@ export function WorkersPage() {
                 name: editWorkerName,
                 storage_id: editStorageId,
             })
-            toast.success("Worker updated successfully")
+            toast.success(t('workers.updatedSuccess'))
             setIsEditDialogOpen(false)
             setEditingWorker(null)
             fetchData()
         } catch (error) {
-            toast.error("Failed to update worker")
+            toast.error(t('workers.updatedError'))
             console.error(error)
         } finally {
             setIsEditing(false)
@@ -147,12 +149,12 @@ export function WorkersPage() {
 
         try {
             await workersApi.delete(deletingWorker.id)
-            toast.success("Worker deleted successfully")
+            toast.success(t('workers.deletedSuccess'))
             setIsDeleteDialogOpen(false)
             setDeletingWorker(null)
             fetchData()
         } catch (error) {
-            toast.error("Failed to delete worker")
+            toast.error(t('workers.deletedError'))
             console.error(error)
         } finally {
             setIsDeleting(false)
@@ -172,9 +174,9 @@ export function WorkersPage() {
     }
 
     const getStorageName = (storageId: string | null) => {
-        if (!storageId) return "Not assigned"
+        if (!storageId) return t('workers.notAssigned')
         const storage = storages.find((s) => s.id === storageId)
-        return storage?.name || "Unknown"
+        return storage?.name || t('workers.unknown')
     }
 
     return (
@@ -182,32 +184,32 @@ export function WorkersPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-foreground">Storage Workers</h1>
+                    <h1 className="text-3xl font-bold text-foreground">{t('workers.title')}</h1>
                     <p className="text-muted-foreground">
-                        Telegram bots that handle file uploads and downloads
+                        {t('workers.description')}
                     </p>
                 </div>
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                     <DialogTrigger asChild>
                         <Button className="bg-secondary text-primary hover:bg-secondary/90">
                             <Plus className="mr-2 h-4 w-4" />
-                            New Worker
+                            {t('workers.newWorker')}
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="bg-card">
                         <form onSubmit={handleCreateWorker}>
                             <DialogHeader>
-                                <DialogTitle>Create New Worker</DialogTitle>
+                                <DialogTitle>{t('workers.createNewWorker')}</DialogTitle>
                                 <DialogDescription>
-                                    Add a Telegram bot to handle file operations
+                                    {t('workers.createDescription')}
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4 py-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="workerName">Worker Name</Label>
+                                    <Label htmlFor="workerName">{t('workers.workerName')}</Label>
                                     <Input
                                         id="workerName"
-                                        placeholder="My Bot"
+                                        placeholder={t('workers.workerNamePlaceholder')}
                                         value={newWorkerName}
                                         onChange={(e) => setNewWorkerName(e.target.value)}
                                         required
@@ -215,11 +217,11 @@ export function WorkersPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="workerToken">Bot Token</Label>
+                                    <Label htmlFor="workerToken">{t('workers.botToken')}</Label>
                                     <Input
                                         id="workerToken"
                                         type="password"
-                                        placeholder="123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
+                                        placeholder={t('workers.botTokenPlaceholder')}
                                         value={newWorkerToken}
                                         onChange={(e) => setNewWorkerToken(e.target.value)}
                                         required
@@ -227,19 +229,19 @@ export function WorkersPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="storage">Storage *</Label>
+                                    <Label htmlFor="storage">{t('workers.storage')} *</Label>
                                     <Select
                                         value={selectedStorageId}
                                         onValueChange={setSelectedStorageId}
                                         required
                                     >
                                         <SelectTrigger className="bg-background">
-                                            <SelectValue placeholder="Select a storage" />
+                                            <SelectValue placeholder={t('workers.selectStorage')} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {storages.length === 0 ? (
                                                 <SelectItem value="no-storages" disabled>
-                                                    No storages available
+                                                    {t('workers.noStoragesAvailable')}
                                                 </SelectItem>
                                             ) : (
                                                 storages.map((storage) => (
@@ -252,7 +254,7 @@ export function WorkersPage() {
                                     </Select>
                                     {storages.length === 0 && (
                                         <p className="text-xs text-muted-foreground">
-                                            Create a storage first before adding a worker
+                                            {t('workers.createStorageFirst')}
                                         </p>
                                     )}
                                 </div>
@@ -263,7 +265,7 @@ export function WorkersPage() {
                                     variant="outline"
                                     onClick={() => setIsCreateDialogOpen(false)}
                                 >
-                                    Cancel
+                                    {t('common.cancel')}
                                 </Button>
                                 <Button
                                     type="submit"
@@ -271,7 +273,7 @@ export function WorkersPage() {
                                     disabled={isCreating || !selectedStorageId}
                                 >
                                     {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Create
+                                    {t('common.create')}
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -288,10 +290,10 @@ export function WorkersPage() {
                 <div className="flex h-64 flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card/50">
                     <Bot className="h-12 w-12 text-muted-foreground" />
                     <h3 className="mt-4 text-lg font-semibold text-foreground">
-                        No workers yet
+                        {t('workers.noWorkers')}
                     </h3>
                     <p className="text-muted-foreground">
-                        Add a Telegram bot to start uploading files
+                        {t('workers.addBot')}
                     </p>
                 </div>
             ) : (
@@ -299,9 +301,9 @@ export function WorkersPage() {
                     <Table>
                         <TableHeader>
                             <TableRow className="hover:bg-transparent">
-                                <TableHead>Name</TableHead>
-                                <TableHead>Storage</TableHead>
-                                <TableHead className="w-[70px]">Actions</TableHead>
+                                <TableHead>{t('common.name')}</TableHead>
+                                <TableHead>{t('workers.storage')}</TableHead>
+                                <TableHead className="w-[70px]">{t('common.actions')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -321,14 +323,14 @@ export function WorkersPage() {
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuItem onClick={() => openEditDialog(worker)}>
                                                     <Pencil className="mr-2 h-4 w-4" />
-                                                    Edit
+                                                    {t('common.edit')}
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     onClick={() => openDeleteDialog(worker)}
                                                     className="text-destructive focus:text-destructive"
                                                 >
                                                     <Trash2 className="mr-2 h-4 w-4" />
-                                                    Delete
+                                                    {t('common.delete')}
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
@@ -345,14 +347,14 @@ export function WorkersPage() {
                 <DialogContent className="bg-card">
                     <form onSubmit={handleEditWorker}>
                         <DialogHeader>
-                            <DialogTitle>Edit Worker</DialogTitle>
+                            <DialogTitle>{t('workers.editWorker')}</DialogTitle>
                             <DialogDescription>
-                                Update worker settings
+                                {t('workers.updateSettings')}
                             </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4 py-4">
                             <div className="space-y-2">
-                                <Label htmlFor="editWorkerName">Worker Name</Label>
+                                <Label htmlFor="editWorkerName">{t('workers.workerName')}</Label>
                                 <Input
                                     id="editWorkerName"
                                     value={editWorkerName}
@@ -362,13 +364,13 @@ export function WorkersPage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="editStorage">Storage</Label>
+                                <Label htmlFor="editStorage">{t('workers.storage')}</Label>
                                 <Select
                                     value={editStorageId}
                                     onValueChange={setEditStorageId}
                                 >
                                     <SelectTrigger className="bg-background">
-                                        <SelectValue placeholder="Select a storage" />
+                                        <SelectValue placeholder={t('workers.selectStorage')} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {storages.map((storage) => (
@@ -386,7 +388,7 @@ export function WorkersPage() {
                                 variant="outline"
                                 onClick={() => setIsEditDialogOpen(false)}
                             >
-                                Cancel
+                                {t('common.cancel')}
                             </Button>
                             <Button
                                 type="submit"
@@ -394,7 +396,7 @@ export function WorkersPage() {
                                 disabled={isEditing}
                             >
                                 {isEditing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Save Changes
+                                {t('common.saveChanges')}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -405,21 +407,20 @@ export function WorkersPage() {
             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <AlertDialogContent className="bg-card">
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Worker</AlertDialogTitle>
+                        <AlertDialogTitle>{t('workers.deleteWorker')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to delete "{deletingWorker?.name}"?
-                            This action cannot be undone.
+                            {t('workers.deleteConfirm', { name: deletingWorker?.name })}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDeleteWorker}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             disabled={isDeleting}
                         >
                             {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Delete
+                            {t('common.delete')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

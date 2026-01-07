@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { useParams, useNavigate, useSearchParams } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import {
     Folder,
@@ -56,6 +57,7 @@ function formatSize(bytes: number): string {
 }
 
 export function FilesPage() {
+    const { t } = useTranslation()
     const { storageId } = useParams<{ storageId: string }>()
     const [searchParams, setSearchParams] = useSearchParams()
     const navigate = useNavigate()
@@ -85,7 +87,7 @@ export function FilesPage() {
             setStorage(storageData)
             setFsElements(fsData)
         } catch (error) {
-            toast.error("Failed to load files")
+            toast.error(t('files.loadError'))
             console.error(error)
         } finally {
             setIsLoading(false)
@@ -119,12 +121,12 @@ export function FilesPage() {
                 path: currentPath,
                 folder_name: newFolderName,
             })
-            toast.success(`Folder "${newFolderName}" created`)
+            toast.success(t('files.folderCreated', { name: newFolderName }))
             setShowFolderDialog(false)
             setNewFolderName("")
             fetchData()
         } catch (error) {
-            toast.error("Failed to create folder")
+            toast.error(t('files.folderCreateError'))
             console.error(error)
         } finally {
             setIsCreatingFolder(false)
@@ -138,10 +140,10 @@ export function FilesPage() {
         setIsUploading(true)
         try {
             await filesApi.uploadFile(storageId, currentPath, file)
-            toast.success(`File "${file.name}" uploaded`)
+            toast.success(t('files.fileUploaded', { name: file.name }))
             fetchData()
         } catch (error) {
-            toast.error("Failed to upload file")
+            toast.error(t('files.uploadError'))
             console.error(error)
         } finally {
             setIsUploading(false)
@@ -162,9 +164,9 @@ export function FilesPage() {
             a.download = element.name
             a.click()
             URL.revokeObjectURL(url)
-            toast.success(`Downloaded "${element.name}"`)
+            toast.success(t('files.downloaded', { name: element.name }))
         } catch (error) {
-            toast.error("Failed to download file")
+            toast.error(t('files.downloadError'))
             console.error(error)
         }
     }
@@ -174,12 +176,12 @@ export function FilesPage() {
 
         try {
             await filesApi.delete(storageId, selectedElement.path)
-            toast.success(`Deleted "${selectedElement.name}"`)
+            toast.success(t('files.deleted', { name: selectedElement.name }))
             setShowDeleteDialog(false)
             setSelectedElement(null)
             fetchData()
         } catch (error) {
-            toast.error("Failed to delete")
+            toast.error(t('files.deleteError'))
             console.error(error)
         }
     }
@@ -207,7 +209,7 @@ export function FilesPage() {
                     </Button>
                     <div>
                         <h1 className="text-3xl font-bold text-foreground">
-                            {storage?.name || "Loading..."}
+                            {storage?.name || t('common.loading')}
                         </h1>
                         {/* Breadcrumbs */}
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -238,14 +240,14 @@ export function FilesPage() {
                         onClick={() => navigate(`/storages/${storageId}/access`)}
                     >
                         <Users className="mr-2 h-4 w-4" />
-                        Access
+                        {t('files.access')}
                     </Button>
                     <Button
                         variant="outline"
                         onClick={() => setShowFolderDialog(true)}
                     >
                         <FolderPlus className="mr-2 h-4 w-4" />
-                        New Folder
+                        {t('files.newFolder')}
                     </Button>
                     <Button
                         className="bg-secondary text-primary hover:bg-secondary/90"
@@ -257,7 +259,7 @@ export function FilesPage() {
                         ) : (
                             <Upload className="mr-2 h-4 w-4" />
                         )}
-                        Upload
+                        {t('files.upload')}
                     </Button>
                     <input
                         ref={fileInputRef}
@@ -277,10 +279,10 @@ export function FilesPage() {
                 <div className="flex h-64 flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card/50">
                     <Folder className="h-12 w-12 text-muted-foreground" />
                     <h3 className="mt-4 text-lg font-semibold text-foreground">
-                        No files yet
+                        {t('files.noFiles')}
                     </h3>
                     <p className="text-muted-foreground">
-                        Upload files or create folders to get started
+                        {t('files.uploadOrCreate')}
                     </p>
                 </div>
             ) : (
@@ -341,7 +343,7 @@ export function FilesPage() {
                                                     }}
                                                 >
                                                     <Download className="mr-2 h-4 w-4" />
-                                                    Download
+                                                    {t('files.download')}
                                                 </DropdownMenuItem>
                                             )}
                                             <DropdownMenuItem
@@ -353,7 +355,7 @@ export function FilesPage() {
                                                 }}
                                             >
                                                 <Trash2 className="mr-2 h-4 w-4" />
-                                                Delete
+                                                {t('common.delete')}
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
@@ -370,18 +372,18 @@ export function FilesPage() {
                 <DialogContent className="bg-card">
                     <form onSubmit={handleCreateFolder}>
                         <DialogHeader>
-                            <DialogTitle>Create New Folder</DialogTitle>
+                            <DialogTitle>{t('files.createNewFolder')}</DialogTitle>
                             <DialogDescription>
-                                Enter a name for the new folder
+                                {t('files.enterFolderName')}
                             </DialogDescription>
                         </DialogHeader>
                         <div className="py-4">
-                            <Label htmlFor="folderName">Folder Name</Label>
+                            <Label htmlFor="folderName">{t('files.folderName')}</Label>
                             <Input
                                 id="folderName"
                                 value={newFolderName}
                                 onChange={(e) => setNewFolderName(e.target.value)}
-                                placeholder="New Folder"
+                                placeholder={t('files.folderNamePlaceholder')}
                                 required
                                 className="mt-2 bg-background"
                             />
@@ -392,7 +394,7 @@ export function FilesPage() {
                                 variant="outline"
                                 onClick={() => setShowFolderDialog(false)}
                             >
-                                Cancel
+                                {t('common.cancel')}
                             </Button>
                             <Button
                                 type="submit"
@@ -402,7 +404,7 @@ export function FilesPage() {
                                 {isCreatingFolder && (
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 )}
-                                Create
+                                {t('common.create')}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -413,18 +415,20 @@ export function FilesPage() {
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <AlertDialogContent className="bg-card">
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete {selectedElement?.is_file ? "file" : "folder"}?</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {selectedElement?.is_file ? t('files.deleteFile') : t('files.deleteFolder')}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to delete "{selectedElement?.name}"? This action cannot be undone.
+                            {t('files.deleteConfirm', { name: selectedElement?.name })}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDelete}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
-                            Delete
+                            {t('common.delete')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

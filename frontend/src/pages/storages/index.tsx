@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { Plus, HardDrive, Loader2 } from "lucide-react"
 import { storagesApi } from "@/lib/api"
@@ -34,6 +35,7 @@ function formatSize(bytes: number): string {
 }
 
 export function StoragesPage() {
+    const { t } = useTranslation()
     const navigate = useNavigate()
     const [storages, setStorages] = useState<StorageWithInfo[]>([])
     const [isLoading, setIsLoading] = useState(true)
@@ -47,7 +49,7 @@ export function StoragesPage() {
             const data = await storagesApi.list()
             setStorages(data)
         } catch (error) {
-            toast.error("Failed to load storages")
+            toast.error(t('storages.loadError'))
             console.error(error)
         } finally {
             setIsLoading(false)
@@ -67,13 +69,13 @@ export function StoragesPage() {
                 name: newStorageName,
                 chat_id: parseInt(newStorageChatId),
             })
-            toast.success("Storage created successfully")
+            toast.success(t('storages.createdSuccess'))
             setIsDialogOpen(false)
             setNewStorageName("")
             setNewStorageChatId("")
             fetchStorages()
         } catch (error) {
-            toast.error("Failed to create storage")
+            toast.error(t('storages.createdError'))
             console.error(error)
         } finally {
             setIsCreating(false)
@@ -89,32 +91,32 @@ export function StoragesPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-foreground">Storages</h1>
+                    <h1 className="text-3xl font-bold text-foreground">{t('storages.title')}</h1>
                     <p className="text-muted-foreground">
-                        Manage your cloud storage spaces
+                        {t('storages.description')}
                     </p>
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
                         <Button className="bg-secondary text-primary hover:bg-secondary/90">
                             <Plus className="mr-2 h-4 w-4" />
-                            New Storage
+                            {t('storages.newStorage')}
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="bg-card">
                         <form onSubmit={handleCreateStorage}>
                             <DialogHeader>
-                                <DialogTitle>Create New Storage</DialogTitle>
+                                <DialogTitle>{t('storages.createNewStorage')}</DialogTitle>
                                 <DialogDescription>
-                                    Add a new storage connected to a Telegram channel
+                                    {t('storages.createDescription')}
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4 py-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="name">Storage Name</Label>
+                                    <Label htmlFor="name">{t('storages.storageName')}</Label>
                                     <Input
                                         id="name"
-                                        placeholder="My Storage"
+                                        placeholder={t('storages.storageNamePlaceholder')}
                                         value={newStorageName}
                                         onChange={(e) => setNewStorageName(e.target.value)}
                                         required
@@ -122,11 +124,11 @@ export function StoragesPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="chatId">Telegram Chat ID</Label>
+                                    <Label htmlFor="chatId">{t('storages.telegramChatId')}</Label>
                                     <Input
                                         id="chatId"
                                         type="number"
-                                        placeholder="-1001234567890"
+                                        placeholder={t('storages.chatIdPlaceholder')}
                                         value={newStorageChatId}
                                         onChange={(e) => setNewStorageChatId(e.target.value)}
                                         required
@@ -140,7 +142,7 @@ export function StoragesPage() {
                                     variant="outline"
                                     onClick={() => setIsDialogOpen(false)}
                                 >
-                                    Cancel
+                                    {t('common.cancel')}
                                 </Button>
                                 <Button
                                     type="submit"
@@ -148,7 +150,7 @@ export function StoragesPage() {
                                     disabled={isCreating}
                                 >
                                     {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Create
+                                    {t('common.create')}
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -164,18 +166,18 @@ export function StoragesPage() {
             ) : storages.length === 0 ? (
                 <div className="flex h-64 flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card/50">
                     <HardDrive className="h-12 w-12 text-muted-foreground" />
-                    <h3 className="mt-4 text-lg font-semibold text-foreground">No storages yet</h3>
-                    <p className="text-muted-foreground">Create your first storage to get started</p>
+                    <h3 className="mt-4 text-lg font-semibold text-foreground">{t('storages.noStorages')}</h3>
+                    <p className="text-muted-foreground">{t('storages.createFirst')}</p>
                 </div>
             ) : (
                 <div className="rounded-lg border border-border bg-card">
                     <Table>
                         <TableHeader>
                             <TableRow className="hover:bg-transparent">
-                                <TableHead>Name</TableHead>
-                                <TableHead>Chat ID</TableHead>
-                                <TableHead>Size</TableHead>
-                                <TableHead>Files</TableHead>
+                                <TableHead>{t('common.name')}</TableHead>
+                                <TableHead>{t('storages.chatId')}</TableHead>
+                                <TableHead>{t('storages.size')}</TableHead>
+                                <TableHead>{t('storages.files')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>

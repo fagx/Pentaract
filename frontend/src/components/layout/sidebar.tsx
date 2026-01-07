@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import {
     HardDrive,
     Bot,
@@ -19,14 +20,15 @@ interface SidebarProps {
     className?: string
 }
 
-const navigation = [
-    { name: "Storages", href: "/storages", icon: HardDrive },
-    { name: "Storage Workers", href: "/workers", icon: Bot },
-]
-
 export function Sidebar({ className }: SidebarProps) {
+    const { t } = useTranslation()
     const [collapsed, setCollapsed] = useState(false)
     const location = useLocation()
+
+    const navigation = [
+        { name: t('navigation.storages'), href: "/storages", icon: HardDrive },
+        { name: t('navigation.storageWorkers'), href: "/workers", icon: Bot },
+    ]
 
     return (
         <TooltipProvider delayDuration={0}>

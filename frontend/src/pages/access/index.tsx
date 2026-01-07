@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { ArrowLeft, UserPlus, Trash2, Loader2, Users } from "lucide-react"
 import { storagesApi, accessApi } from "@/lib/api"
@@ -43,12 +44,6 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-const accessTypeLabels: Record<AccessType, string> = {
-    R: "Viewer",
-    W: "Can edit",
-    A: "Admin",
-}
-
 const accessTypeColors: Record<AccessType, string> = {
     R: "bg-blue-500/10 text-blue-500 border-blue-500/20",
     W: "bg-green-500/10 text-green-500 border-green-500/20",
@@ -56,8 +51,15 @@ const accessTypeColors: Record<AccessType, string> = {
 }
 
 export function AccessPage() {
+    const { t } = useTranslation()
     const { storageId } = useParams<{ storageId: string }>()
     const navigate = useNavigate()
+
+    const accessTypeLabels: Record<AccessType, string> = {
+        R: t('access.viewer'),
+        W: t('access.canEdit'),
+        A: t('access.admin'),
+    }
 
     const [storage, setStorage] = useState<Storage | null>(null)
     const [users, setUsers] = useState<UserWithAccess[]>([])
@@ -81,7 +83,7 @@ export function AccessPage() {
             setStorage(storageData)
             setUsers(usersData)
         } catch (error) {
-            toast.error("Failed to load access data")
+            toast.error(t('access.loadError'))
             console.error(error)
         } finally {
             setIsLoading(false)
@@ -102,13 +104,13 @@ export function AccessPage() {
                 user_email: newUserEmail,
                 access_type: newAccessType,
             })
-            toast.success(`Access granted to ${newUserEmail}`)
+            toast.success(t('access.grantedSuccess', { email: newUserEmail }))
             setIsDialogOpen(false)
             setNewUserEmail("")
             setNewAccessType("R")
             fetchData()
         } catch (error) {
-            toast.error("Failed to grant access")
+            toast.error(t('access.grantError'))
             console.error(error)
         } finally {
             setIsGranting(false)
@@ -120,12 +122,12 @@ export function AccessPage() {
 
         try {
             await accessApi.restrict(storageId, { user_id: selectedUser.id })
-            toast.success(`Access revoked from ${selectedUser.email}`)
+            toast.success(t('access.revokedSuccess', { email: selectedUser.email }))
             setShowDeleteDialog(false)
             setSelectedUser(null)
             fetchData()
         } catch (error) {
-            toast.error("Failed to revoke access")
+            toast.error(t('access.revokeError'))
             console.error(error)
         }
     }
@@ -144,9 +146,9 @@ export function AccessPage() {
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <div>
-                        <h1 className="text-3xl font-bold text-foreground">Access Control</h1>
+                        <h1 className="text-3xl font-bold text-foreground">{t('access.title')}</h1>
                         <p className="text-muted-foreground">
-                            Manage who can access "{storage?.name}"
+                            {t('access.description', { name: storage?.name })}
                         </p>
                     </div>
                 </div>
@@ -155,24 +157,24 @@ export function AccessPage() {
                     <DialogTrigger asChild>
                         <Button className="bg-secondary text-primary hover:bg-secondary/90">
                             <UserPlus className="mr-2 h-4 w-4" />
-                            Grant Access
+                            {t('access.grantAccess')}
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="bg-card">
                         <form onSubmit={handleGrantAccess}>
                             <DialogHeader>
-                                <DialogTitle>Grant Access</DialogTitle>
+                                <DialogTitle>{t('access.grantAccessTitle')}</DialogTitle>
                                 <DialogDescription>
-                                    Add a user to this storage
+                                    {t('access.grantDescription')}
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4 py-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="email">User Email</Label>
+                                    <Label htmlFor="email">{t('access.userEmail')}</Label>
                                     <Input
                                         id="email"
                                         type="email"
-                                        placeholder="user@example.com"
+                                        placeholder={t('access.userEmailPlaceholder')}
                                         value={newUserEmail}
                                         onChange={(e) => setNewUserEmail(e.target.value)}
                                         required
@@ -180,7 +182,7 @@ export function AccessPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="accessType">Access Level</Label>
+                                    <Label htmlFor="accessType">{t('access.accessLevel')}</Label>
                                     <Select
                                         value={newAccessType}
                                         onValueChange={(value) => setNewAccessType(value as AccessType)}
@@ -189,9 +191,9 @@ export function AccessPage() {
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="R">Viewer - Read only</SelectItem>
-                                            <SelectItem value="W">Can edit - Upload and delete</SelectItem>
-                                            <SelectItem value="A">Admin - Full control</SelectItem>
+                                            <SelectItem value="R">{t('access.viewerDesc')}</SelectItem>
+                                            <SelectItem value="W">{t('access.canEditDesc')}</SelectItem>
+                                            <SelectItem value="A">{t('access.adminDesc')}</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -202,7 +204,7 @@ export function AccessPage() {
                                     variant="outline"
                                     onClick={() => setIsDialogOpen(false)}
                                 >
-                                    Cancel
+                                    {t('common.cancel')}
                                 </Button>
                                 <Button
                                     type="submit"
@@ -210,7 +212,7 @@ export function AccessPage() {
                                     disabled={isGranting}
                                 >
                                     {isGranting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Grant
+                                    {t('common.grant')}
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -227,10 +229,10 @@ export function AccessPage() {
                 <div className="flex h-64 flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card/50">
                     <Users className="h-12 w-12 text-muted-foreground" />
                     <h3 className="mt-4 text-lg font-semibold text-foreground">
-                        No shared access
+                        {t('access.noAccess')}
                     </h3>
                     <p className="text-muted-foreground">
-                        Grant access to share this storage with others
+                        {t('access.grantToShare')}
                     </p>
                 </div>
             ) : (
@@ -238,8 +240,8 @@ export function AccessPage() {
                     <Table>
                         <TableHeader>
                             <TableRow className="hover:bg-transparent">
-                                <TableHead>Email</TableHead>
-                                <TableHead>Access Level</TableHead>
+                                <TableHead>{t('common.email')}</TableHead>
+                                <TableHead>{t('access.accessLevel')}</TableHead>
                                 <TableHead className="w-16"></TableHead>
                             </TableRow>
                         </TableHeader>
@@ -279,19 +281,18 @@ export function AccessPage() {
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <AlertDialogContent className="bg-card">
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Revoke access?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('access.revokeAccess')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to revoke access from "{selectedUser?.email}"?
-                            They will no longer be able to view or edit this storage.
+                            {t('access.revokeConfirm', { email: selectedUser?.email })}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleRestrictAccess}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
-                            Revoke
+                            {t('common.revoke')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

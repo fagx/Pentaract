@@ -8,9 +8,11 @@ interface AuthState {
     isAuthenticated: boolean
     redirectUrl: string | null
 
+    isLoggingIn: boolean
     login: (user: User, accessToken: string) => void
     logout: () => void
     setRedirectUrl: (url: string | null) => void
+    setLoggingIn: (val: boolean) => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -20,6 +22,7 @@ export const useAuthStore = create<AuthState>()(
             accessToken: null,
             isAuthenticated: false,
             redirectUrl: null,
+            isLoggingIn: false,
 
             login: (user, accessToken) =>
                 set({
@@ -38,6 +41,9 @@ export const useAuthStore = create<AuthState>()(
 
             setRedirectUrl: (url) =>
                 set({ redirectUrl: url }),
+
+            setLoggingIn: (val) =>
+                set({ isLoggingIn: val }),
         }),
         {
             name: "pentaract-auth",
