@@ -2,10 +2,10 @@ import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { useNavigate, useLocation } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
-import { Loader2, LogIn } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useAuthStore } from "@/stores/auth"
 import { authApi } from "@/lib/api"
@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/form"
 import { LanguageSwitcher } from "@/components/layout/language-switcher"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
-import { LoginAnimation } from "@/components/ui/login-animation"
+
 
 // Schemas
 const loginSchema = z.object({
@@ -56,7 +56,7 @@ export function AuthCard({ initialMode = "login" }: AuthCardProps) {
     const { t } = useTranslation()
     const [isFlipped, setIsFlipped] = useState(initialMode === "register")
     const navigate = useNavigate()
-    const location = useLocation()
+
     const { login, logout, redirectUrl, setLoggingIn } = useAuthStore()
 
     // Always show welcome animation on initial mount
